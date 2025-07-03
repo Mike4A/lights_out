@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class GameScreen extends StatefulWidget {
@@ -12,8 +13,10 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late List<List<bool>> _grid;
   int _gridSize = 5;
-  bool _isToggleEnabled = false;
+  bool _listenToLightTaps = false;
   bool _showSizeOverlay = true;
+  int _randomizerTicks = 0;
+  Random rng = Random();
 
   @override
   void initState() {
@@ -26,7 +29,6 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _toggleLights(int x, int y) {
-    if (!_isToggleEnabled) return;
     setState(() {
       _grid[x][y] = !_grid[x][y];
       if (x > 0) {
@@ -44,6 +46,40 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _randomizeGrid(int delayMs) {
+    if (delayMs < 0) {
+      _listenToLightTaps = true;
+      return;
+    }
+    setState(() {
+      _toggleLights(rng.nextInt(_gridSize), rng.nextInt(_gridSize));
+    });
+    _randomizerTicks++;
+    int nextDelayMs;
+    if (_randomizerTicks <= _gridSize * 10) {
+      nextDelayMs = 100;
+    } else {
+      nextDelayMs = (_randomizerTicks - _gridSize * 10) * 100;
+    }
+    if (nextDelayMs > 1000) nextDelayMs = -1;
+    Future.delayed(Duration(milliseconds: delayMs), () {
+      _randomizeGrid(nextDelayMs);
+    });
+  }
+
+  void _checkGameOver() {
+    if (_grid.every((row) => row.every((cell) => cell == false))) {
+      setState(() {
+        _listenToLightTaps = false;
+      });
+      Future.delayed(Duration(seconds: 3), () {
+        setState(() {
+          _showSizeOverlay = true;
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +95,10 @@ class _GameScreenState extends State<GameScreen> {
             ),
             child: Center(
               child: Container(
-                color: Colors.black,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black,
+                ),
                 padding: const EdgeInsets.all(3),
                 width: MediaQuery.of(context).size.width * 0.95,
                 height: MediaQuery.of(context).size.width * 0.95,
@@ -85,7 +124,14 @@ class _GameScreenState extends State<GameScreen> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: GestureDetector(
-                  onTap: () => _toggleLights(x, y),
+                  onTap: () {
+                    if (_listenToLightTaps) {
+                      _toggleLights(x, y);
+                      _checkGameOver();
+                    } else {
+                      null;
+                    }
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 500),
                     margin: const EdgeInsets.all(4),
@@ -145,9 +191,10 @@ class _GameScreenState extends State<GameScreen> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                _isToggleEnabled = true;
                 _showSizeOverlay = false;
               });
+              _randomizerTicks = 0;
+              _randomizeGrid(100);
             },
             child: const Text('Start'),
           ),
