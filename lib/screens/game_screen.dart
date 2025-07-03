@@ -29,6 +29,18 @@ class _GameScreenState extends State<GameScreen> {
     if (!_isToggleEnabled) return;
     setState(() {
       _grid[x][y] = !_grid[x][y];
+      if (x > 0) {
+        _grid[x - 1][y] = !_grid[x - 1][y];
+      }
+      if (x < _gridSize - 1) {
+        _grid[x + 1][y] = !_grid[x + 1][y];
+      }
+      if (y > 0) {
+        _grid[x][y - 1] = !_grid[x][y - 1];
+      }
+      if (y < _gridSize - 1) {
+        _grid[x][y + 1] = !_grid[x][y + 1];
+      }
     });
   }
 
@@ -75,7 +87,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: GestureDetector(
                   onTap: () => _toggleLights(x, y),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 500),
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       gradient: _grid[x][y]
@@ -91,7 +103,7 @@ class _GameScreenState extends State<GameScreen> {
                           ? [
                               BoxShadow(
                                 color: Colors.orange.withAlpha(100),
-                                blurRadius: 8,
+                                blurRadius: 12,
                                 spreadRadius: 1,
                               ),
                             ]
