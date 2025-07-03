@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:lights_out/utils/app_constants.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title});
@@ -16,20 +17,28 @@ class _GameScreenState extends State<GameScreen> {
   bool _listenToLightTaps = false;
   bool _showSizeOverlay = true;
   int _randomizerTicks = 0;
-  final Random rng = Random();
+  final Random _rng = Random();
+  late double _hue;
 
   @override
   void initState() {
     super.initState();
-    _initializeGrid();
+    _initializeGame();
   }
 
-  void _initializeGrid() {
+  void _initializeGame() {
     _grid = List.generate(_gridSize, (_) => List.filled(_gridSize, false));
+    _hue = _rng.nextDouble() * 360;
+  }
+
+  void _startNewGame() {
+    _randomizerTicks = 0;
+    _randomizeGrid(100);
   }
 
   void _toggleLights(int x, int y) {
     setState(() {
+      _hue = (_hue + 10) % 360;
       _grid[x][y] = !_grid[x][y];
       if (x > 0) {
         _grid[x - 1][y] = !_grid[x - 1][y];
@@ -52,14 +61,15 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
     setState(() {
-      _toggleLights(rng.nextInt(_gridSize), rng.nextInt(_gridSize));
+      _toggleLights(_rng.nextInt(_gridSize), _rng.nextInt(_gridSize));
     });
     _randomizerTicks++;
     int nextDelayMs;
     if (_randomizerTicks <= _gridSize * 10) {
       nextDelayMs = 100;
     } else {
-      nextDelayMs = (_randomizerTicks - _gridSize * 10) * 100;
+      nextDelayMs =
+          (_randomizerTicks - _gridSize * 10) * (100 - _gridSize * 10);
     }
     if (nextDelayMs > 1000) nextDelayMs = -1;
     Future.delayed(Duration(milliseconds: delayMs), () {
@@ -80,6 +90,24 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Color _getLightColor() {
+    return HSLColor.fromAHSL(
+      1,
+      _hue,
+      AppConstants.lightSaturation,
+      AppConstants.lightLuminosity,
+    ).toColor();
+  }
+
+  Color _getBackgroundColor() {
+    return HSLColor.fromAHSL(
+      1,
+      (_hue + 180) % 360,
+      AppConstants.lightSaturation,
+      AppConstants.lightLuminosity,
+    ).toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,9 +116,9 @@ class _GameScreenState extends State<GameScreen> {
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                colors: [Colors.blueAccent, Colors.deepPurple],
+                colors: [_getLightColor(), _getBackgroundColor()],
                 center: Alignment.center,
-                radius: 0.8,
+                radius: 0.9,
               ),
             ),
             child: Center(
@@ -138,22 +166,32 @@ class _GameScreenState extends State<GameScreen> {
                     decoration: BoxDecoration(
                       gradient: _grid[x][y]
                           ? RadialGradient(
-                              colors: [Colors.yellowAccent, Colors.orange],
+                              colors: [
+                                _getLightColor(),
+                                _getLightColor().withAlpha(100),
+                              ],
                               center: Alignment.center,
                               radius: 0.8,
                             )
-                          : null,
+                          : RadialGradient(
+                              colors: [
+                                _getLightColor().withAlpha(64),
+                                _getLightColor().withAlpha(32),
+                              ],
+                              center: Alignment.center,
+                              radius: 0.8,
+                            ),
                       color: _grid[x][y] ? null : Colors.grey[800],
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: _grid[x][y]
                           ? [
                               BoxShadow(
-                                color: Colors.orange.withAlpha(100),
+                                color: _getLightColor().withAlpha(32),
                                 blurRadius: 12,
                                 spreadRadius: 1,
                               ),
                             ]
-                          : [],
+                          : null,
                     ),
                   ),
                 ),
@@ -172,7 +210,7 @@ class _GameScreenState extends State<GameScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text(
-            'Gridgröße wählen',
+            'Gridgröße',
             style: TextStyle(color: Colors.white, fontSize: 24),
           ),
           Slider(
@@ -184,7 +222,7 @@ class _GameScreenState extends State<GameScreen> {
             onChanged: (value) {
               setState(() {
                 _gridSize = value.toInt();
-                _initializeGrid();
+                _initializeGame();
               });
             },
           ),
@@ -193,8 +231,7 @@ class _GameScreenState extends State<GameScreen> {
               setState(() {
                 _showSizeOverlay = false;
               });
-              _randomizerTicks = 0;
-              _randomizeGrid(100);
+              _startNewGame();
             },
             child: const Text('Start'),
           ),
