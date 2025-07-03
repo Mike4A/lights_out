@@ -37,7 +37,25 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Center(child: _buildGrid()),
+          Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [Colors.blueAccent, Colors.deepPurple],
+                center: Alignment.center,
+                radius: 0.8,
+              ),
+            ),
+            child: Center(
+              child: Container(
+                color: Colors.black,
+                padding: const EdgeInsets.all(3),
+                width: MediaQuery.of(context).size.width * 0.95,
+                height: MediaQuery.of(context).size.width * 0.95,
+                child: _buildGrid(),
+              ),
+            ),
+          ),
+          // Overlay
           if (_showSizeOverlay) Positioned.fill(child: _buildOverlay()),
         ],
       ),
@@ -56,9 +74,29 @@ class _GameScreenState extends State<GameScreen> {
                 aspectRatio: 1,
                 child: GestureDetector(
                   onTap: () => _toggleLights(x, y),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
                     margin: const EdgeInsets.all(4),
-                    color: _grid[x][y] ? Colors.yellow : Colors.grey[800],
+                    decoration: BoxDecoration(
+                      gradient: _grid[x][y]
+                          ? RadialGradient(
+                              colors: [Colors.yellowAccent, Colors.orange],
+                              center: Alignment.center,
+                              radius: 0.8,
+                            )
+                          : null,
+                      color: _grid[x][y] ? null : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: _grid[x][y]
+                          ? [
+                              BoxShadow(
+                                color: Colors.orange.withAlpha(100),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : [],
+                    ),
                   ),
                 ),
               ),
