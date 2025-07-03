@@ -122,15 +122,43 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
             child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.black,
-                ),
-                padding: const EdgeInsets.all(3),
-                width: MediaQuery.of(context).size.width * 0.95,
-                height: MediaQuery.of(context).size.width * 0.95,
-                child: _buildGrid(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 32),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black54,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        textStyle: const TextStyle(fontSize: 14),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _randomizerTicks = 1000;
+                          _showSizeOverlay = true;
+                          _listenToLightTaps = false;
+                        });
+                      },
+                      child: const Text('Aufgeben'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.black,
+                    ),
+                    padding: const EdgeInsets.all(3),
+                    width: MediaQuery.of(context).size.width * 0.95,
+                    height: MediaQuery.of(context).size.width * 0.95,
+                    child: _buildGrid(),
+                  ),
+                ],
               ),
             ),
           ),
