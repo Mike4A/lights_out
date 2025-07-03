@@ -16,7 +16,7 @@ class _GameScreenState extends State<GameScreen> {
   bool _listenToLightTaps = false;
   bool _showSizeOverlay = true;
   int _randomizerTicks = 0;
-  Random rng = Random();
+  final Random rng = Random();
 
   @override
   void initState() {
