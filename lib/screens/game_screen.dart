@@ -113,45 +113,50 @@ class _GameScreenState extends State<GameScreen> {
                 radius: 0.9,
               ),
             ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 32),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black54,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+            child: Column(
+              children: [
+                const SizedBox(height: 60),
+                Expanded(
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(9),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.black,
+                          ),
+                          padding: const EdgeInsets.all(3),
+                          child: _buildGrid(),
                         ),
-                        textStyle: const TextStyle(fontSize: 14),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _randomizerTicks = 1000; // Stop it
-                          _showSizeOverlay = true;
-                          _listenToLightTaps = false;
-                        });
-                      },
-                      child: const Text('Aufgeben'),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.black,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black54,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      textStyle: const TextStyle(fontSize: 20),
                     ),
-                    padding: const EdgeInsets.all(3),
-                    width: MediaQuery.of(context).size.width * 0.95,
-                    height: MediaQuery.of(context).size.width * 0.95,
-                    child: _buildGrid(),
+                    onPressed: () {
+                      setState(() {
+                        _randomizerTicks = 1000;
+                        _showSizeOverlay = true;
+                        _listenToLightTaps = false;
+                      });
+                    },
+                    child: const Text('Aufgeben'),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           // Overlay
@@ -253,7 +258,7 @@ class _GameScreenState extends State<GameScreen> {
               });
               _startNewGame();
             },
-            child: const Text('Start'),
+            child: const Text('Start', style: TextStyle(fontSize: 20)),
           ),
         ],
       ),
