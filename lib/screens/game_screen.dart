@@ -40,18 +40,10 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _hue = (_hue + 10) % 360;
       _grid[x][y] = !_grid[x][y];
-      if (x > 0) {
-        _grid[x - 1][y] = !_grid[x - 1][y];
-      }
-      if (x < _gridSize - 1) {
-        _grid[x + 1][y] = !_grid[x + 1][y];
-      }
-      if (y > 0) {
-        _grid[x][y - 1] = !_grid[x][y - 1];
-      }
-      if (y < _gridSize - 1) {
-        _grid[x][y + 1] = !_grid[x][y + 1];
-      }
+      if (x > 0) _grid[x - 1][y] = !_grid[x - 1][y];
+      if (x < _gridSize - 1) _grid[x + 1][y] = !_grid[x + 1][y];
+      if (y > 0) _grid[x][y - 1] = !_grid[x][y - 1];
+      if (y < _gridSize - 1) _grid[x][y + 1] = !_grid[x][y + 1];
     });
   }
 
@@ -139,7 +131,7 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _randomizerTicks = 1000;
+                          _randomizerTicks = 1000; // Stop it
                           _showSizeOverlay = true;
                           _listenToLightTaps = false;
                         });
