@@ -74,22 +74,22 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void toggleCell(int x, int y) {
+  void _toggleCell(List<List<bool>> grid, int x, int y) {
     if (x < 0 || x >= _gridSize || y < 0 || y >= _gridSize) return;
-    _grid[x][y] = !_grid[x][y];
+    grid[x][y] = !grid[x][y];
   }
 
   void _toggleLights(int x, int y) {
     if (_frameIndex < _history.length - 1) {
-      _history = _history.sublist(0, _frameIndex + 1); //   Waurm + 1?
+      _history = _history.sublist(0, _frameIndex + 1);
     }
     final newGrid = _deepCopy(_grid);
     _hue = (_hue + 10) % 360;
-    toggleCell(x, y);
-    toggleCell(x - 1, y);
-    toggleCell(x + 1, y);
-    toggleCell(x, y - 1);
-    toggleCell(x, y + 1);
+    _toggleCell(newGrid, x, y);
+    _toggleCell(newGrid, x - 1, y);
+    _toggleCell(newGrid, x + 1, y);
+    _toggleCell(newGrid, x, y - 1);
+    _toggleCell(newGrid, x, y + 1);
     setState(() {
       _history.add(newGrid);
       _frameIndex++;
@@ -116,11 +116,11 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       final x = _rng.nextInt(_gridSize);
       final y = _rng.nextInt(_gridSize);
-      toggleCell(x, y);
-      toggleCell(x - 1, y);
-      toggleCell(x + 1, y);
-      toggleCell(x, y - 1);
-      toggleCell(x, y + 1);
+      _toggleCell(_grid, x, y);
+      _toggleCell(_grid, x - 1, y);
+      _toggleCell(_grid, x + 1, y);
+      _toggleCell(_grid, x, y - 1);
+      _toggleCell(_grid, x, y + 1);
     });
     _randomizerTicks++;
     int nextDelayMs;
