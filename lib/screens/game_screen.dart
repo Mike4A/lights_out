@@ -12,13 +12,14 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  late List<List<bool>> _grid;
   int _gridSize = 5;
   bool _listenToLightTaps = false;
   bool _showSizeOverlay = true;
   int _randomizerTicks = 0;
   final Random _rng = Random();
   late double _hue;
+  late List<List<List<bool>>> _history;
+  int _frameIndex = 0;
 
   Color get _getLightColor => HSLColor.fromAHSL(
     1,
@@ -34,20 +35,26 @@ class _GameScreenState extends State<GameScreen> {
     AppConstants.lightLuminosity,
   ).toColor();
 
+  List<List<bool>> get _grid => _history[_frameIndex];
+
+  List<List<bool>> _deepCopy(List<List<bool>> source) =>
+      source.map((row) => List<bool>.from(row)).toList();
+
   @override
   void initState() {
     super.initState();
-    _initializeGame();
+    _setupNewGame();
   }
 
-  void _initializeGame() {
-    _grid = List.generate(_gridSize, (_) => List.filled(_gridSize, false));
+  void _setupNewGame({bool randomized = false}) {
+    final empty = List.generate(_gridSize, (_) => List.filled(_gridSize, false));
+    _history = [_deepCopy(empty)];
     _hue = _rng.nextDouble() * 360;
-  }
-
-  void _startNewGame() {
+    _frameIndex = 0;
     _randomizerTicks = 0;
-    _randomizeGrid(100);
+    if (randomized) {
+      _randomizeGrid(100);
+    }
   }
 
   void _endGame() {
@@ -67,20 +74,39 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void toggleCell(int x, int y) {
+    if (x < 0 || x >= _gridSize || y < 0 || y >= _gridSize) return;
+    _grid[x][y] = !_grid[x][y];
+  }
+
   void _toggleLights(int x, int y) {
+    if (_frameIndex < _history.length - 1) {
+      _history = _history.sublist(0, _frameIndex + 1); //   Waurm + 1?
+    }
+    final newGrid = _deepCopy(_grid);
+    _hue = (_hue + 10) % 360;
+    toggleCell(x, y);
+    toggleCell(x - 1, y);
+    toggleCell(x + 1, y);
+    toggleCell(x, y - 1);
+    toggleCell(x, y + 1);
     setState(() {
-      _hue = (_hue + 10) % 360;
-      _grid[x][y] = !_grid[x][y];
-      if (x > 0) _grid[x - 1][y] = !_grid[x - 1][y];
-      if (x < _gridSize - 1) _grid[x + 1][y] = !_grid[x + 1][y];
-      if (y > 0) _grid[x][y - 1] = !_grid[x][y - 1];
-      if (y < _gridSize - 1) _grid[x][y + 1] = !_grid[x][y + 1];
+      _history.add(newGrid);
+      _frameIndex++;
     });
   }
 
-  void _goForward() {}
+  void _goBack() {
+    if (_frameIndex > 0) {
+      setState(() => _frameIndex--);
+    }
+  }
 
-  void _goBack() {}
+  void _goForward() {
+    if (_frameIndex < _history.length - 1) {
+      setState(() => _frameIndex++);
+    }
+  }
 
   void _randomizeGrid(int delayMs) {
     if (delayMs < 0) {
@@ -88,7 +114,13 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
     setState(() {
-      _toggleLights(_rng.nextInt(_gridSize), _rng.nextInt(_gridSize));
+      final x = _rng.nextInt(_gridSize);
+      final y = _rng.nextInt(_gridSize);
+      toggleCell(x, y);
+      toggleCell(x - 1, y);
+      toggleCell(x + 1, y);
+      toggleCell(x, y - 1);
+      toggleCell(x, y + 1);
     });
     _randomizerTicks++;
     int nextDelayMs;
@@ -123,7 +155,6 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
-
 
   Widget _buildGameFrame() {
     return Column(
@@ -164,7 +195,7 @@ class _GameScreenState extends State<GameScreen> {
       child: const Text('Aufgeben'),
     );
   }
-  
+
   Widget _buildGrid() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -220,7 +251,7 @@ class _GameScreenState extends State<GameScreen> {
       }),
     );
   }
-  
+
   Widget _buildNavButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -266,7 +297,7 @@ class _GameScreenState extends State<GameScreen> {
             onChanged: (value) {
               setState(() {
                 _gridSize = value.toInt();
-                _initializeGame();
+                _setupNewGame();
               });
             },
           ),
@@ -275,7 +306,7 @@ class _GameScreenState extends State<GameScreen> {
               setState(() {
                 _showSizeOverlay = false;
               });
-              _startNewGame();
+              _setupNewGame(randomized: true);
             },
             child: const Text('Start', style: TextStyle(fontSize: 20)),
           ),
