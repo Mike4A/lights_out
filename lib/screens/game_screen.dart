@@ -20,6 +20,20 @@ class _GameScreenState extends State<GameScreen> {
   final Random _rng = Random();
   late double _hue;
 
+  Color get _getLightColor => HSLColor.fromAHSL(
+    1,
+    _hue,
+    AppConstants.lightSaturation,
+    AppConstants.lightLuminosity,
+  ).toColor();
+
+  Color get _getBackgroundColor => HSLColor.fromAHSL(
+    1,
+    (_hue + 180) % 360,
+    AppConstants.lightSaturation,
+    AppConstants.lightLuminosity,
+  ).toColor();
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +48,23 @@ class _GameScreenState extends State<GameScreen> {
   void _startNewGame() {
     _randomizerTicks = 0;
     _randomizeGrid(100);
+  }
+
+  void _endGame() {
+    setState(() {
+      _randomizerTicks = 1000;
+      _showSizeOverlay = true;
+      _listenToLightTaps = false;
+    });
+  }
+
+  void _handleGameOver() {
+    if (_grid.every((row) => row.every((cell) => cell == false))) {
+      setState(() {
+        _listenToLightTaps = false;
+      });
+      Future.delayed(Duration(seconds: 3), () => _endGame());
+    }
   }
 
   void _toggleLights(int x, int y) {
@@ -60,44 +91,12 @@ class _GameScreenState extends State<GameScreen> {
     if (_randomizerTicks <= _gridSize * 10) {
       nextDelayMs = 100;
     } else {
-      nextDelayMs =
-          (_randomizerTicks - _gridSize * 10) * (100 - _gridSize * 10);
+      nextDelayMs = (_randomizerTicks - _gridSize * 10) * (100 - _gridSize * 10);
     }
     if (nextDelayMs > 1000) nextDelayMs = -1;
     Future.delayed(Duration(milliseconds: delayMs), () {
       _randomizeGrid(nextDelayMs);
     });
-  }
-
-  void _checkGameOver() {
-    if (_grid.every((row) => row.every((cell) => cell == false))) {
-      setState(() {
-        _listenToLightTaps = false;
-      });
-      Future.delayed(Duration(seconds: 3), () {
-        setState(() {
-          _showSizeOverlay = true;
-        });
-      });
-    }
-  }
-
-  Color _getLightColor() {
-    return HSLColor.fromAHSL(
-      1,
-      _hue,
-      AppConstants.lightSaturation,
-      AppConstants.lightLuminosity,
-    ).toColor();
-  }
-
-  Color _getBackgroundColor() {
-    return HSLColor.fromAHSL(
-      1,
-      (_hue + 180) % 360,
-      AppConstants.lightSaturation,
-      AppConstants.lightLuminosity,
-    ).toColor();
   }
 
   @override
@@ -108,64 +107,60 @@ class _GameScreenState extends State<GameScreen> {
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                colors: [_getLightColor(), _getBackgroundColor()],
+                colors: [_getLightColor, _getBackgroundColor],
                 center: Alignment.center,
                 radius: 0.95,
               ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                Expanded(
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(9),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.black,
-                          ),
-                          padding: const EdgeInsets.all(3),
-                          child: _buildGrid(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 24.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black54,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      textStyle: const TextStyle(fontSize: 20),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _randomizerTicks = 1000;
-                        _showSizeOverlay = true;
-                        _listenToLightTaps = false;
-                      });
-                    },
-                    child: const Text('Aufgeben'),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildGameFrame(),
           ),
-          // Overlay
           if (_showSizeOverlay) Positioned.fill(child: _buildOverlay()),
         ],
       ),
     );
   }
 
+
+  Widget _buildGameFrame() {
+    return Column(
+      children: [
+        const Spacer(),
+        _buildGiveUpButton(),
+        const SizedBox(height: 32),
+        AspectRatio(
+          aspectRatio: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(9),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.black,
+              ),
+              padding: const EdgeInsets.all(3),
+              child: _buildGrid(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildNavButtons(),
+        const Spacer(),
+      ],
+    );
+  }
+
+  Widget _buildGiveUpButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black54,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        textStyle: const TextStyle(fontSize: 20),
+      ),
+      onPressed: _endGame,
+      child: const Text('Aufgeben'),
+    );
+  }
+  
   Widget _buildGrid() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -180,7 +175,7 @@ class _GameScreenState extends State<GameScreen> {
                   onTap: () {
                     if (_listenToLightTaps) {
                       _toggleLights(x, y);
-                      _checkGameOver();
+                      _handleGameOver();
                     } else {
                       null;
                     }
@@ -191,18 +186,12 @@ class _GameScreenState extends State<GameScreen> {
                     decoration: BoxDecoration(
                       gradient: _grid[x][y]
                           ? RadialGradient(
-                              colors: [
-                                _getLightColor(),
-                                _getLightColor().withAlpha(100),
-                              ],
+                              colors: [_getLightColor, _getLightColor.withAlpha(100)],
                               center: Alignment.center,
                               radius: 0.8,
                             )
                           : RadialGradient(
-                              colors: [
-                                _getLightColor().withAlpha(64),
-                                _getLightColor().withAlpha(32),
-                              ],
+                              colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
                               center: Alignment.center,
                               radius: 0.8,
                             ),
@@ -211,7 +200,7 @@ class _GameScreenState extends State<GameScreen> {
                       boxShadow: _grid[x][y]
                           ? [
                               BoxShadow(
-                                color: _getLightColor().withAlpha(32),
+                                color: _getLightColor.withAlpha(32),
                                 blurRadius: 12,
                                 spreadRadius: 1,
                               ),
@@ -227,6 +216,35 @@ class _GameScreenState extends State<GameScreen> {
       }),
     );
   }
+  
+  Widget _buildNavButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _goBack(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black54,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          child: const Icon(Icons.arrow_back),
+        ),
+        const SizedBox(width: 32),
+        ElevatedButton(
+          onPressed: _goForward(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black54,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          child: const Icon(Icons.arrow_forward),
+        ),
+      ],
+    );
+  }
 
   Widget _buildOverlay() {
     return Container(
@@ -234,10 +252,7 @@ class _GameScreenState extends State<GameScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Gridgröße',
-            style: TextStyle(color: Colors.white, fontSize: 24),
-          ),
+          const Text('Gridgröße', style: TextStyle(color: Colors.white, fontSize: 24)),
           Slider(
             value: _gridSize.toDouble(),
             min: 3,
@@ -264,4 +279,8 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+
+  _goForward() {}
+
+  _goBack() {}
 }
