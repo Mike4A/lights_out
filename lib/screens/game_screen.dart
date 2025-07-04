@@ -78,6 +78,10 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _goForward() {}
+
+  void _goBack() {}
+
   void _randomizeGrid(int delayMs) {
     if (delayMs < 0) {
       _listenToLightTaps = true;
@@ -222,7 +226,7 @@ class _GameScreenState extends State<GameScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton(
-          onPressed: _goBack(),
+          onPressed: _goBack,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black54,
             foregroundColor: Colors.white,
@@ -233,7 +237,7 @@ class _GameScreenState extends State<GameScreen> {
         ),
         const SizedBox(width: 32),
         ElevatedButton(
-          onPressed: _goForward(),
+          onPressed: _goForward,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black54,
             foregroundColor: Colors.white,
@@ -279,8 +283,4 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
-
-  _goForward() {}
-
-  _goBack() {}
 }
