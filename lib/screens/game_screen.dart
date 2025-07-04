@@ -110,7 +110,7 @@ class _GameScreenState extends State<GameScreen> {
               gradient: RadialGradient(
                 colors: [_getLightColor(), _getBackgroundColor()],
                 center: Alignment.center,
-                radius: 0.9,
+                radius: 0.95,
               ),
             ),
             child: Column(
