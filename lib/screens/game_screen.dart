@@ -21,21 +21,19 @@ class _GameScreenState extends State<GameScreen> {
   late List<List<List<bool>>> _history;
   int _frameIndex = 0;
 
-  Color get _getLightColor =>
-      HSLColor.fromAHSL(
-        1,
-        _hue,
-        AppConstants.lightSaturation,
-        AppConstants.lightLuminosity,
-      ).toColor();
+  Color get _getLightColor => HSLColor.fromAHSL(
+    1,
+    _hue,
+    AppConstants.lightSaturation,
+    AppConstants.lightLuminosity,
+  ).toColor();
 
-  Color get _getBackgroundColor =>
-      HSLColor.fromAHSL(
-        1,
-        (_hue + 180) % 360,
-        AppConstants.lightSaturation,
-        AppConstants.lightLuminosity,
-      ).toColor();
+  Color get _getBackgroundColor => HSLColor.fromAHSL(
+    1,
+    (_hue + 180) % 360,
+    AppConstants.lightSaturation,
+    AppConstants.lightLuminosity,
+  ).toColor();
 
   List<List<bool>> get _grid => _history[_frameIndex];
 
@@ -56,42 +54,6 @@ class _GameScreenState extends State<GameScreen> {
     _randomizerTicks = 0;
     if (randomized) {
       _randomizeGrid(100);
-    }
-  }
-
-  void _toggleCell(List<List<bool>> grid, int x, int y) {
-    if (x < 0 || x >= _gridSize || y < 0 || y >= _gridSize) return;
-    grid[x][y] = !grid[x][y];
-  }
-
-  void _toggleLights(int x, int y) {
-    if (_frameIndex < _history.length - 1) {
-      _history = _history.sublist(0, _frameIndex + 1);
-    }
-    final newGrid = _deepCopy(_grid);
-    _toggleCell(newGrid, x, y);
-    _toggleCell(newGrid, x - 1, y);
-    _toggleCell(newGrid, x + 1, y);
-    _toggleCell(newGrid, x, y - 1);
-    _toggleCell(newGrid, x, y + 1);
-    setState(() {
-      _history.add(newGrid);
-      _frameIndex++;
-    });
-    setState(() {
-      _hue = (_hue + 10) % 360;
-    });
-  }
-
-  void _goBack() {
-    if (_frameIndex > 0) {
-      setState(() => _frameIndex--);
-    }
-  }
-
-  void _goForward() {
-    if (_frameIndex < _history.length - 1) {
-      setState(() => _frameIndex++);
     }
   }
 
@@ -122,12 +84,36 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _endGame() {
-    setState(() {
-      _randomizerTicks = 1000;
-      _showSizeOverlay = true;
-      _listenToLightTaps = false;
-    });
+  void _toggleLights(int x, int y) {
+    if (_frameIndex < _history.length - 1) {
+      _history = _history.sublist(0, _frameIndex + 1);
+    }
+    _history.add(_deepCopy(_grid));
+    _frameIndex++;
+    _toggleCell(_grid, x, y);
+    _toggleCell(_grid, x - 1, y);
+    _toggleCell(_grid, x + 1, y);
+    _toggleCell(_grid, x, y - 1);
+    _toggleCell(_grid, x, y + 1);
+    setState(() {});
+  }
+
+  void _toggleCell(List<List<bool>> grid, int x, int y) {
+    if (x < 0 || x >= _gridSize || y < 0 || y >= _gridSize) return;
+    grid[x][y] = !grid[x][y];
+    _hue = (_hue + 2) % 360;
+  }
+
+  void _goBack() {
+    if (_frameIndex > 0) {
+      setState(() => _frameIndex--);
+    }
+  }
+
+  void _goForward() {
+    if (_frameIndex < _history.length - 1) {
+      setState(() => _frameIndex++);
+    }
   }
 
   Future<void> _gameOverCheck() async {
@@ -159,6 +145,14 @@ class _GameScreenState extends State<GameScreen> {
           _grid[i][_gridSize - 1 - offset] = status;
         }
       }
+    });
+  }
+
+  void _endGame() {
+    setState(() {
+      _randomizerTicks = 1000;
+      _showSizeOverlay = true;
+      _listenToLightTaps = false;
     });
   }
 
@@ -243,39 +237,37 @@ class _GameScreenState extends State<GameScreen> {
                     }
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 300),
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       boxShadow: _grid[x][y]
                           ? [
-                        BoxShadow(
-                          color: _getLightColor.withAlpha(128),
-                          blurRadius: 24,
-                          spreadRadius: 1,
-                        ),
-                      ] :
-                      [
-                        BoxShadow(
-                          color: Colors.grey.shade800.withAlpha(128),
-                          blurRadius: 24,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                          ,
+                              BoxShadow(
+                                color: _getLightColor.withAlpha(128),
+                                blurRadius: 24,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Colors.grey.shade800.withAlpha(128),
+                                blurRadius: 24,
+                                spreadRadius: 1,
+                              ),
+                            ],
                       gradient: _grid[x][y]
                           ? RadialGradient(
-                        colors: [_getLightColor, _getLightColor.withAlpha(100)],
-                        center: Alignment.center,
-                        radius: 0.8,
-                      )
+                              colors: [_getLightColor, _getLightColor.withAlpha(100)],
+                              center: Alignment.center,
+                              radius: 0.8,
+                            )
                           : RadialGradient(
-                        colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
-                        center: Alignment.center,
-                        radius: 0.8,
-                      ),
+                              colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
+                              center: Alignment.center,
+                              radius: 0.8,
+                            ),
                       color: _grid[x][y] ? null : Colors.grey[800],
                       borderRadius: BorderRadius.circular(8),
-
                     ),
                   ),
                 ),
