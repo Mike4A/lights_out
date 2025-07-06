@@ -243,7 +243,7 @@ class _GameScreenState extends State<GameScreen> {
                     }
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 2000),
+                    duration: const Duration(milliseconds: 250),
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       boxShadow: _grid[x][y]
