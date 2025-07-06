@@ -57,23 +57,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _endGame() {
-    setState(() {
-      _randomizerTicks = 1000;
-      _showSizeOverlay = true;
-      _listenToLightTaps = false;
-    });
-  }
-
-  void _handleGameOver() {
-    if (_grid.every((row) => row.every((cell) => cell == false))) {
-      setState(() {
-        _listenToLightTaps = false;
-      });
-      Future.delayed(Duration(seconds: 3), () => _endGame());
-    }
-  }
-
   void _toggleCell(List<List<bool>> grid, int x, int y) {
     if (x < 0 || x >= _gridSize || y < 0 || y >= _gridSize) return;
     grid[x][y] = !grid[x][y];
@@ -84,7 +67,6 @@ class _GameScreenState extends State<GameScreen> {
       _history = _history.sublist(0, _frameIndex + 1);
     }
     final newGrid = _deepCopy(_grid);
-    _hue = (_hue + 10) % 360;
     _toggleCell(newGrid, x, y);
     _toggleCell(newGrid, x - 1, y);
     _toggleCell(newGrid, x + 1, y);
@@ -93,6 +75,9 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _history.add(newGrid);
       _frameIndex++;
+    });
+    setState(() {
+      _hue = (_hue + 10) % 360;
     });
   }
 
@@ -132,6 +117,46 @@ class _GameScreenState extends State<GameScreen> {
     if (nextDelayMs > 1000) nextDelayMs = -1;
     Future.delayed(Duration(milliseconds: delayMs), () {
       _randomizeGrid(nextDelayMs);
+    });
+  }
+
+  void _endGame() {
+    setState(() {
+      _randomizerTicks = 1000;
+      _showSizeOverlay = true;
+      _listenToLightTaps = false;
+    });
+  }
+
+  Future<void> _gameOverCheck() async {
+    if (_grid.every((row) => row.every((cell) => cell == false))) {
+      setState(() {
+        _listenToLightTaps = false;
+      });
+      // Play a final done animation
+      await Future.delayed(Duration(seconds: 1));
+      for (int i = 0; i < (_gridSize / 2).ceil() + 1; i++) {
+        if (i > 0) {
+          _gameOverAnimation(false, i - 1);
+        }
+        _gameOverAnimation(true, i);
+        await Future.delayed(Duration(seconds: 1));
+      }
+      _gameOverAnimation(false, (_gridSize / 2).ceil());
+      _endGame();
+    }
+  }
+
+  _gameOverAnimation(bool status, int offset) {
+    setState(() {
+      for (int i = offset; i < _gridSize - offset; i++) {
+        _grid[offset][i] = status;
+        _grid[i][offset] = status;
+        if (offset != _gridSize - offset) {
+          _grid[_gridSize - 1 - offset][i] = status;
+          _grid[i][_gridSize - 1 - offset] = status;
+        }
+      }
     });
   }
 
@@ -210,7 +235,7 @@ class _GameScreenState extends State<GameScreen> {
                   onTap: () {
                     if (_listenToLightTaps) {
                       _toggleLights(x, y);
-                      _handleGameOver();
+                      _gameOverCheck();
                     } else {
                       null;
                     }
@@ -235,8 +260,8 @@ class _GameScreenState extends State<GameScreen> {
                       boxShadow: _grid[x][y]
                           ? [
                               BoxShadow(
-                                color: _getLightColor.withAlpha(32),
-                                blurRadius: 12,
+                                color: _getLightColor.withAlpha(128),
+                                blurRadius: 24,
                                 spreadRadius: 1,
                               ),
                             ]
