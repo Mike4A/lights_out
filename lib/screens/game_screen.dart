@@ -21,19 +21,21 @@ class _GameScreenState extends State<GameScreen> {
   late List<List<List<bool>>> _history;
   int _frameIndex = 0;
 
-  Color get _getLightColor => HSLColor.fromAHSL(
-    1,
-    _hue,
-    AppConstants.lightSaturation,
-    AppConstants.lightLuminosity,
-  ).toColor();
+  Color get _getLightColor =>
+      HSLColor.fromAHSL(
+        1,
+        _hue,
+        AppConstants.lightSaturation,
+        AppConstants.lightLuminosity,
+      ).toColor();
 
-  Color get _getBackgroundColor => HSLColor.fromAHSL(
-    1,
-    (_hue + 180) % 360,
-    AppConstants.lightSaturation,
-    AppConstants.lightLuminosity,
-  ).toColor();
+  Color get _getBackgroundColor =>
+      HSLColor.fromAHSL(
+        1,
+        (_hue + 180) % 360,
+        AppConstants.lightSaturation,
+        AppConstants.lightLuminosity,
+      ).toColor();
 
   List<List<bool>> get _grid => _history[_frameIndex];
 
@@ -241,31 +243,39 @@ class _GameScreenState extends State<GameScreen> {
                     }
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 2000),
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      gradient: _grid[x][y]
-                          ? RadialGradient(
-                              colors: [_getLightColor, _getLightColor.withAlpha(100)],
-                              center: Alignment.center,
-                              radius: 0.8,
-                            )
-                          : RadialGradient(
-                              colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
-                              center: Alignment.center,
-                              radius: 0.8,
-                            ),
-                      color: _grid[x][y] ? null : Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
                       boxShadow: _grid[x][y]
                           ? [
-                              BoxShadow(
-                                color: _getLightColor.withAlpha(128),
-                                blurRadius: 24,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : null,
+                        BoxShadow(
+                          color: _getLightColor.withAlpha(128),
+                          blurRadius: 24,
+                          spreadRadius: 1,
+                        ),
+                      ] :
+                      [
+                        BoxShadow(
+                          color: Colors.grey.shade800.withAlpha(128),
+                          blurRadius: 24,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                          ,
+                      gradient: _grid[x][y]
+                          ? RadialGradient(
+                        colors: [_getLightColor, _getLightColor.withAlpha(100)],
+                        center: Alignment.center,
+                        radius: 0.8,
+                      )
+                          : RadialGradient(
+                        colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
+                        center: Alignment.center,
+                        radius: 0.8,
+                      ),
+                      color: _grid[x][y] ? null : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
+
                     ),
                   ),
                 ),
