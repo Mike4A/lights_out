@@ -50,18 +50,18 @@ class _GameScreenState extends State<GameScreen> {
     _setupNewGame();
   }
 
-  void _setupNewGame({bool start = false}) {
+  Future<void> _setupNewGame({bool start = false}) async {
     _history = [List.generate(_gridSize, (_) => List.filled(_gridSize, false))];
     _frameIndex = 0;
     _randomizerTicks = 0;
     _hue = _rng.nextDouble() * 360;
     if (start) {
-      _randomizeGrid(100);
+      await _randomizeGrid(100);
       _listenToLightTaps = true;
     }
   }
 
-  void _randomizeGrid(int delayMs) {
+  Future<void> _randomizeGrid(int delayMs) async {
     // Toggle random tile
     setState(() {
       final x = _rng.nextInt(_gridSize);
@@ -83,9 +83,8 @@ class _GameScreenState extends State<GameScreen> {
     }
     // Recursive with end condition
     if (nextDelayMs <= 1000) {
-      Future.delayed(Duration(milliseconds: delayMs), () {
-        _randomizeGrid(nextDelayMs);
-      });
+      await Future.delayed(Duration(milliseconds: delayMs));
+      await _randomizeGrid(nextDelayMs);
     }
   }
 
