@@ -50,6 +50,22 @@ class _GameScreenState extends State<GameScreen> {
     _setupNewGame();
   }
 
+  Future<void> _handleGridSizeChanged(int value) async {
+    setState(() {
+      _gridSize = value;
+    });
+    await _setupNewGame();
+  }
+
+  Future<void> _handleStart() async {
+    if (mounted) {
+      setState(() {
+        _showSizeOverlay = false;
+      });
+    }
+    await _setupNewGame(start: true);
+  }
+
   Future<void> _setupNewGame({bool start = false}) async {
     _history = [List.generate(_gridSize, (_) => List.filled(_gridSize, false))];
     _frameIndex = 0;
@@ -171,7 +187,14 @@ class _GameScreenState extends State<GameScreen> {
             ),
             child: _buildGameFrame(),
           ),
-          if (_showSizeOverlay) Positioned.fill(child: _buildOverlay()),
+          if (_showSizeOverlay)
+            Positioned.fill(
+              child: GameSetupOverlay(
+                gridSize: _gridSize,
+                onGridSizeChanged: _handleGridSizeChanged,
+                onStart: _handleStart,
+              ),
+            ),
         ],
       ),
     );
@@ -237,29 +260,5 @@ class _GameScreenState extends State<GameScreen> {
         );
       }),
     );
-  }
-
-  Widget _buildOverlay() {
-    if (_showSizeOverlay) {
-      return Positioned.fill(
-        child: GameSetupOverlay(
-          gridSize: _gridSize,
-          onGridSizeChanged: (v) {
-            setState(() {
-              _gridSize = v;
-              _setupNewGame();
-            });
-          },
-          onStart: () {
-            setState(() {
-              _showSizeOverlay = false;
-            });
-            _setupNewGame(start: true);
-          },
-        ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
   }
 }
