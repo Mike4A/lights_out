@@ -5,7 +5,7 @@ class GameButton extends StatelessWidget {
   final String? text;
   final IconData? icon;
 
-  GameButton({
+  const GameButton({
     super.key, required this.onPressed, this.text, this.icon
   });
 

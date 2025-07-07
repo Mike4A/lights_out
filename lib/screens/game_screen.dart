@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lights_out/utils/app_constants.dart';
+import 'package:lights_out/widgets/game_setup_overlay.dart';
 
 import '../Widgets/light_tile.dart';
 import '../widgets/game_button.dart';
@@ -49,12 +50,15 @@ class _GameScreenState extends State<GameScreen> {
     _setupNewGame();
   }
 
-  void _setupNewGame({bool randomized = false}) {
+  void _setupNewGame({bool start = false}) {
     _history = [List.generate(_gridSize, (_) => List.filled(_gridSize, false))];
     _frameIndex = 0;
     _randomizerTicks = 0;
     _hue = _rng.nextDouble() * 360;
-    if (randomized) _randomizeGrid(100);
+    if (start) {
+      _randomizeGrid(100);
+      _listenToLightTaps = true;
+    }
   }
 
   void _randomizeGrid(int delayMs) {
@@ -83,10 +87,6 @@ class _GameScreenState extends State<GameScreen> {
         _randomizeGrid(nextDelayMs);
       });
     }
-  }
-
-  void _startGame() {
-    _listenToLightTaps = true;
   }
 
   void _toggleLights(int x, int y) {
@@ -241,37 +241,26 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildOverlay() {
-    return Container(
-      color: Colors.black.withAlpha(200),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('Gridgröße', style: TextStyle(color: Colors.white, fontSize: 24)),
-          Slider(
-            value: _gridSize.toDouble(),
-            min: 3,
-            max: 8,
-            divisions: 5,
-            label: '$_gridSize x $_gridSize',
-            onChanged: (value) {
-              setState(() {
-                _gridSize = value.toInt();
-                _setupNewGame();
-              });
-            },
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _showSizeOverlay = false;
-                _startGame();
-              });
-              _setupNewGame(randomized: true);
-            },
-            child: const Text('Start', style: TextStyle(fontSize: 20)),
-          ),
-        ],
-      ),
-    );
+    if (_showSizeOverlay) {
+      return Positioned.fill(
+        child: GameSetupOverlay(
+          gridSize: _gridSize,
+          onGridSizeChanged: (v) {
+            setState(() {
+              _gridSize = v;
+              _setupNewGame();
+            });
+          },
+          onStart: () {
+            setState(() {
+              _showSizeOverlay = false;
+            });
+            _setupNewGame(start: true);
+          },
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 }
