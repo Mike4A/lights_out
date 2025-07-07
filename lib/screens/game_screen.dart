@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lights_out/utils/app_constants.dart';
 
+import '../Widgets/light_tile.dart';
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title});
 
@@ -227,50 +229,16 @@ class _GameScreenState extends State<GameScreen> {
             return Expanded(
               child: AspectRatio(
                 aspectRatio: 1,
-                child: GestureDetector(
-                  onTap: () {
-                    if (_listenToLightTaps) {
-                      _toggleLights(x, y);
-                      _gameOverCheck();
-                    } else {
-                      null;
-                    }
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      boxShadow: _grid[x][y]
-                          ? [
-                              BoxShadow(
-                                color: _getLightColor.withAlpha(128),
-                                blurRadius: 24,
-                                spreadRadius: 1,
-                              ),
-                            ]
-                          : [
-                              BoxShadow(
-                                color: Colors.grey.shade800.withAlpha(128),
-                                blurRadius: 24,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                      gradient: _grid[x][y]
-                          ? RadialGradient(
-                              colors: [_getLightColor, _getLightColor.withAlpha(100)],
-                              center: Alignment.center,
-                              radius: 0.8,
-                            )
-                          : RadialGradient(
-                              colors: [_getLightColor.withAlpha(64), _getLightColor.withAlpha(32)],
-                              center: Alignment.center,
-                              radius: 0.8,
-                            ),
-                      color: _grid[x][y] ? null : Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+                 child: LightTile(
+                    isOn: _grid[x][y],
+                    onTap: () {
+                      if (_listenToLightTaps) {
+                        _toggleLights(x, y);
+                        _gameOverCheck();
+                      }
+                    },
+                    lightColor: _getLightColor,
+                  )
               ),
             );
           }),
