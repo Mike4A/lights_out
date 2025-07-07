@@ -15,14 +15,14 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  int _gridSize = 5;
-  bool _listenToLightTaps = false;
   bool _showSizeOverlay = true;
-  int _randomizerTicks = 0;
-  final Random _rng = Random();
-  late double _hue;
+  int _gridSize = 5;
   late List<List<List<bool>>> _history;
   int _frameIndex = 0;
+  bool _listenToLightTaps = false;
+  final Random _rng = Random();
+  int _randomizerTicks = 0;
+  late double _hue;
 
   Color get _getLightColor => HSLColor.fromAHSL(
     1,
@@ -50,21 +50,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _setupNewGame({bool randomized = false}) {
-    final empty = List.generate(_gridSize, (_) => List.filled(_gridSize, false));
-    _history = [_deepCopy(empty)];
-    _hue = _rng.nextDouble() * 360;
+    _history = [List.generate(_gridSize, (_) => List.filled(_gridSize, false))];
     _frameIndex = 0;
     _randomizerTicks = 0;
-    if (randomized) {
-      _randomizeGrid(100);
-    }
+    _hue = _rng.nextDouble() * 360;
+    if (randomized) _randomizeGrid(100);
   }
 
   void _randomizeGrid(int delayMs) {
-    if (delayMs < 0) {
-      _listenToLightTaps = true;
-      return;
-    }
+    // Toggle random tile
     setState(() {
       final x = _rng.nextInt(_gridSize);
       final y = _rng.nextInt(_gridSize);
@@ -74,17 +68,25 @@ class _GameScreenState extends State<GameScreen> {
       _toggleCell(_grid, x, y - 1);
       _toggleCell(_grid, x, y + 1);
     });
+    // Recursive logic
     _randomizerTicks++;
     int nextDelayMs;
     if (_randomizerTicks <= _gridSize * 10) {
       nextDelayMs = 100;
     } else {
+      // A slowly fading duration grow
       nextDelayMs = (_randomizerTicks - _gridSize * 10) * (100 - _gridSize * 10);
     }
-    if (nextDelayMs > 1000) nextDelayMs = -1;
-    Future.delayed(Duration(milliseconds: delayMs), () {
-      _randomizeGrid(nextDelayMs);
-    });
+    // Recursive with end condition
+    if (nextDelayMs <= 1000) {
+      Future.delayed(Duration(milliseconds: delayMs), () {
+        _randomizeGrid(nextDelayMs);
+      });
+    }
+  }
+
+  void _startGame() {
+    _listenToLightTaps = true;
   }
 
   void _toggleLights(int x, int y) {
@@ -108,15 +110,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _goBack() {
-    if (_frameIndex > 0) {
-      setState(() => _frameIndex--);
-    }
+    if (_frameIndex > 0) setState(() => _frameIndex--);
   }
 
   void _goForward() {
-    if (_frameIndex < _history.length - 1) {
-      setState(() => _frameIndex++);
-    }
+    if (_frameIndex < _history.length - 1) setState(() => _frameIndex++);
   }
 
   Future<void> _gameOverCheck() async {
@@ -125,27 +123,27 @@ class _GameScreenState extends State<GameScreen> {
         _listenToLightTaps = false;
       });
       // Play a final done animation
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(Duration(milliseconds: 1000));
       for (int i = 0; i < (_gridSize / 2).ceil() + 1; i++) {
         if (i > 0) {
-          _gameOverAnimation(false, i - 1);
+          _switchLightCircle(false, i - 1);
         }
-        _gameOverAnimation(true, i);
-        await Future.delayed(Duration(seconds: 1));
+        _switchLightCircle(true, i);
+        await Future.delayed(Duration(milliseconds: 1000));
       }
-      _gameOverAnimation(false, (_gridSize / 2).ceil());
+      _switchLightCircle(false, (_gridSize / 2).ceil());
       _endGame();
     }
   }
 
-  _gameOverAnimation(bool status, int offset) {
+  _switchLightCircle(bool glowing, int offset) {
     setState(() {
       for (int i = offset; i < _gridSize - offset; i++) {
-        _grid[offset][i] = status;
-        _grid[i][offset] = status;
+        _grid[offset][i] = glowing;
+        _grid[i][offset] = glowing;
         if (offset != _gridSize - offset) {
-          _grid[_gridSize - 1 - offset][i] = status;
-          _grid[i][_gridSize - 1 - offset] = status;
+          _grid[_gridSize - 1 - offset][i] = glowing;
+          _grid[i][_gridSize - 1 - offset] = glowing;
         }
       }
     });
@@ -266,6 +264,7 @@ class _GameScreenState extends State<GameScreen> {
             onPressed: () {
               setState(() {
                 _showSizeOverlay = false;
+                _startGame();
               });
               _setupNewGame(randomized: true);
             },
