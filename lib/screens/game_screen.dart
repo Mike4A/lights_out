@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lights_out/utils/app_constants.dart';
 
 import '../Widgets/light_tile.dart';
+import '../widgets/game_button.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title});
@@ -183,7 +184,7 @@ class _GameScreenState extends State<GameScreen> {
     return Column(
       children: [
         const Spacer(),
-        _buildGiveUpButton(),
+        GameButton(text: 'Aufgeben', onPressed: _endGame),
         const SizedBox(height: 32),
         AspectRatio(
           aspectRatio: 1,
@@ -200,22 +201,16 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         const SizedBox(height: 32),
-        _buildNavButtons(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GameButton(icon: Icons.arrow_back, onPressed: _goBack),
+            const SizedBox(width: 32),
+            GameButton(icon: Icons.arrow_forward, onPressed: _goForward),
+          ],
+        ),
         const Spacer(),
       ],
-    );
-  }
-
-  Widget _buildGiveUpButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black54,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: const TextStyle(fontSize: 20),
-      ),
-      onPressed: _endGame,
-      child: const Text('Aufgeben'),
     );
   }
 
@@ -229,50 +224,21 @@ class _GameScreenState extends State<GameScreen> {
             return Expanded(
               child: AspectRatio(
                 aspectRatio: 1,
-                 child: LightTile(
-                    isOn: _grid[x][y],
-                    onTap: () {
-                      if (_listenToLightTaps) {
-                        _toggleLights(x, y);
-                        _gameOverCheck();
-                      }
-                    },
-                    lightColor: _getLightColor,
-                  )
+                child: LightTile(
+                  isOn: _grid[x][y],
+                  onTap: () {
+                    if (_listenToLightTaps) {
+                      _toggleLights(x, y);
+                      _gameOverCheck();
+                    }
+                  },
+                  lightColor: _getLightColor,
+                ),
               ),
             );
           }),
         );
       }),
-    );
-  }
-
-  Widget _buildNavButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: _goBack,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black54,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            textStyle: const TextStyle(fontSize: 20),
-          ),
-          child: const Icon(Icons.arrow_back),
-        ),
-        const SizedBox(width: 32),
-        ElevatedButton(
-          onPressed: _goForward,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black54,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            textStyle: const TextStyle(fontSize: 20),
-          ),
-          child: const Icon(Icons.arrow_forward),
-        ),
-      ],
     );
   }
 
